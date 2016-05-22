@@ -7,6 +7,7 @@ import Data.Monoid
 import System.Exit
 import XMonad
 import XMonad.Hooks.EwmhDesktops
+import XMonad.Layout.NoBorders
 import XMonad.Lens
 
 import qualified Data.Map        as M
@@ -15,6 +16,7 @@ import qualified XMonad.StackSet as W
 launch :: IO ()
 launch = xmonad $ configure $ ewmh $ def
 
+configure :: XConfig l -> XConfig _
 configure
   = set _terminal "xterm"
   . set _focusFollowsMouse True
@@ -146,7 +148,7 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
     ]
 
-myLayout = tiled ||| Mirror tiled ||| Full
+myLayout = tiled ||| Mirror tiled ||| noBorders Full
   where
      tiled   = Tall nmaster delta ratio
      nmaster = 1
