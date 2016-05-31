@@ -3,21 +3,28 @@ module XmonadS9G
   ) where
 
 import Control.Lens
+import Data.DynamicState
 import Data.Monoid
 import System.Exit
+import System.Log.FastLogger
 import XMonad
 import XMonad.Hooks.EwmhDesktops
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers
 import XMonad.Layout.NoBorders
 import XMonad.Lens
+import XMonad.Logging
 
 import qualified Data.Map        as M
 import qualified XMonad.StackSet as W
 
 launch :: IO ()
-launch = xmonad $ configure $ ewmh $ def
+launch = do
+  logger <- newFileLoggerSet defaultBufSize "~/.xmonad.log"
+  xmonad $ configure logger $ ewmh $ def
 
-configure :: XConfig l -> XConfig _
-configure
+configure :: LoggerSet -> XConfig l -> XConfig _
+configure logger
   = set _terminal "xterm"
   . set _focusFollowsMouse True
   . set _clickJustFocuses  True
@@ -30,7 +37,8 @@ configure
   . set _mouseBindings  myMouseBindings
   . set _layoutHook  myLayout
   . over _manageHook  configureManageHook
-  . over _handleEventHook  (<> fullscreenEventHook)
+  . over _handleEventHook configureEventHook
+  . over _payload (flip setDyn logger)
   -- . over _logHook  myLogHook
   -- . over _startupHook  myStartupHook
 
@@ -148,18 +156,28 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
     ]
 
-myLayout = tiled ||| Mirror tiled ||| noBorders Full
+myLayout = avoidStruts $ tiled ||| Mirror tiled ||| noBorders Full
   where
      tiled   = Tall nmaster delta ratio
      nmaster = 1
      ratio   = 1/2
      delta   = 3/100
 
--- configureManageHook :: ManageHook -> ManageHook
+configureEventHook :: (Event -> X All) -> Event -> X All
+configureEventHook ehooks = ehooks
+  <> fullscreenEventHook
+  <> docksEventHook
+
+configureManageHook :: ManageHook -> ManageHook
 configureManageHook hooks = composeAll
-  [ hooks
-  , className =? "MPlayer"        --> doFloat
+  [ className =? "MPlayer"        --> doFloat
+  , className =? "mpv"            --> doFloat
   , className =? "Gimp"           --> doFloat
+  , className =? "tint2"          --> doIgnore
   , resource  =? "desktop_window" --> doIgnore
   , resource  =? "kdesktop"       --> doIgnore
+  , isDialog                      --> doFloat
+  , isFullscreen                  --> doFullFloat
+  -- , manageDocks
+  , hooks
   ]

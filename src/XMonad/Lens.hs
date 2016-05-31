@@ -25,7 +25,8 @@ makeLensesFor
          , "clickJustFocuses"
          , "clientMask"
          , "rootMask"
-         , "handleExtraArgs"]]
+         , "handleExtraArgs"
+         , "payload"]]
   ''XConfig
 
 makeLensesFor

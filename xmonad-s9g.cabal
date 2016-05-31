@@ -19,10 +19,15 @@ library
   default-extensions: PartialTypeSignatures
                     , TemplateHaskell
   exposed-modules: XMonad.Lens
+                 , XMonad.Logging
                  , XmonadS9G
   build-depends:       base >= 4.7 && < 5
                      , containers
+                     , dynamic-state
+                     , fast-logger
                      , lens
+                     , monad-logger
+                     , transformers
                      , xmonad
                      , xmonad-contrib
   default-language:    Haskell2010
